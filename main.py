@@ -2,20 +2,40 @@ from Valores import Valores
 from Grafico import Grafico
 from Estatisticas import Estatisticas
 from Excel import Excel
+from Importador import Importador
 
 
 print("=== Sistema de Gráficos ===")
 
 
-def main():
+def escolher_modo():
 
-    while True:
+    modo = input("""
+1 - Inserir dados manualmente
+2 - Importar CSV
+3 - Importar Excel
 
-        # título
-        titulo = input("Digite o título do gráfico: ")
+Digite:
+""")
 
-        # tipo de gráfico
-        tipo = input('''
+    while modo not in ["1", "2", "3"]:
+
+        print("Valor incorreto!")
+
+        modo = input("""
+1 - Inserir dados manualmente
+2 - Importar CSV
+3 - Importar Excel
+
+Digite:
+""")
+
+    return modo
+
+
+def tipo_grafico():
+
+    tipo = input('''
 Escolha o gráfico:
 
 1 - Linha
@@ -27,87 +47,153 @@ Escolha o gráfico:
 Digite:
 ''')
 
-        # HISTOGRAMA
-        if tipo == "4":
+    while tipo not in ["1", "2", "3", "4", "5"]:
 
-            yinput = input(
-                "Digite os dados do histograma separados por vírgula:\n"
+        print("Tipo inválido!")
+
+        tipo = input("Digite novamente: ")
+
+    return tipo
+
+
+def obter_dados_manualmente(tipo):
+
+    # HISTOGRAMA
+    if tipo == "4":
+
+        yinput = input(
+            "Digite os dados do histograma separados por vírgula:\n"
+        )
+
+        x = []
+
+        y = [int(i.strip()) for i in yinput.split(",")]
+
+    # PIZZA
+    elif tipo == "3":
+
+        xinput = input(
+            "Digite os nomes das fatias separados por vírgula:\n"
+        )
+
+        yinput = input(
+            "Digite os valores das fatias separados por vírgula:\n"
+        )
+
+        x = xinput.split(",")
+
+        y = [int(i.strip()) for i in yinput.split(",")]
+
+    # LINHA, BARRAS E DISPERSÃO
+    else:
+
+        xinput = input(
+            "Digite os valores de X separados por vírgula:\n"
+        )
+
+        yinput = input(
+            "Digite os valores de Y separados por vírgula:\n"
+        )
+
+        x = xinput.split(",")
+
+        y = [int(i.strip()) for i in yinput.split(",")]
+
+        # valida tamanho
+        if len(x) != len(y):
+
+            print(
+                "Erro: X e Y precisam ter o mesmo tamanho."
             )
 
-            x = []
+            return None, None
 
-            y = [int(i.strip()) for i in yinput.split(",")]
-
-
-        # PIZZA
-        elif tipo == "3":
-
-            xinput = input(
-                "Digite os nomes das fatias separados por vírgula:\n"
-            )
-
-            yinput = input(
-                "Digite os valores das fatias separados por vírgula:\n"
-            )
-
-            x = xinput.split(",")
-
-            y = [int(i.strip()) for i in yinput.split(",")]
+    return x, y
 
 
-        # LINHA, BARRAS E DISPERSÃO
-        else:
+def importar_csv():
 
-            xinput = input(
-                "Digite os valores de X separados por vírgula:\n"
-            )
+    nome_csv = input(
+        "Digite o nome do arquivo CSV: "
+    )
 
-            yinput = input(
-                "Digite os valores de Y separados por vírgula:\n"
-            )
+    importador = Importador()
 
-            x = xinput.split(",")
+    x, y = importador.importar_csv(nome_csv)
 
-            y = [int(i.strip()) for i in yinput.split(",")]
+    return x, y
 
-            # valida tamanho
-            if len(x) != len(y):
+def importar_excel():
 
-                print(
-                    "Erro: X e Y precisam ter o mesmo tamanho."
-                )
+    nome_excel = input(
+        "Digite o nome do arquivo Excel: "
+    )
 
+    importador = Importador()
+
+    x, y = importador.importar_excel(nome_excel)
+
+    return x, y
+
+def main():
+
+    while True:
+
+        modo = escolher_modo()
+
+        titulo = input(
+            "Digite o título do gráfico: "
+        )
+
+        tipo = tipo_grafico()
+
+        # DADOS
+        if modo == "1":
+
+            x, y = obter_dados_manualmente(tipo)
+
+            if x is None:
                 continue
 
+        elif modo == "2":
+
+            x, y = importar_csv()
+
+
+        else:
+            x, y = importar_excel()
+            
+            print(x)
+            print(y)
 
         # cria objetos
         v1 = Valores(x, y)
 
-        g1 = Grafico(v1.valorx, v1.valory)
+        g1 = Grafico(
+            v1.valorx,
+            v1.valory
+        )
 
         g1.titulo_grafico(titulo)
 
+        # labels
+        if modo == "1":
+            if tipo in ["1", "2", "4", "5"]:
+                xlabel = input(
+                    "Digite o rótulo do eixo X: "
+                )
 
-        # labels só para gráficos com eixo
-        if tipo in ["1", "2", "4", "5"]:
+                ylabel = input(
+                     "Digite o rótulo do eixo Y: "
+                )
 
-            xlabel = input(
-                "Digite o rótulo do eixo X: "
-            )
-
-            ylabel = input(
-                "Digite o rótulo do eixo Y: "
-            )
-
-            g1.labels_grafico(
-                xlabel,
-                ylabel
-            )
-
+                g1.labels_grafico(
+                    xlabel,
+                    ylabel
+                )
 
         # gera gráfico
         g1.gerar_grafico(tipo)
-
 
         # estatísticas
         e1 = Estatisticas(v1.valory)
@@ -122,8 +208,12 @@ Digite:
 
         print(f"Soma: {e1.soma()}")
 
+        print(
+            f"Desvio padrão: "
+            f"{e1.desvio_padrao():.2f}"
+        )
 
-        # salvar imagem
+        # salvar png
         salvar = input(
             "\nDeseja salvar como PNG? (s/n): "
         )
@@ -134,7 +224,6 @@ Digite:
                 "Resposta inválida. (s/n): "
             )
 
-
         if salvar == "s":
 
             nome = input(
@@ -143,18 +232,23 @@ Digite:
 
             g1.salvar_imagempng(nome)
 
-            print("Imagem salva com sucesso!")
+            print(
+                "Imagem salva com sucesso!"
+            )
 
+        # exportar excel
         excel = input(
             "\nDeseja exportar para Excel? (s/n): "
         )
 
         while excel not in ["s", "n"]:
+
             excel = input(
                 "Resposta inválida. (s/n): "
             )
 
         if excel == "s":
+
             nome_excel = input(
                 "Digite o nome do arquivo Excel: "
             )
@@ -167,12 +261,14 @@ Digite:
 
             exportador.exportar(nome_excel)
 
-            print("Excel exportado com sucesso!")
+            print(
+                "Excel exportado com sucesso!"
+            )
+
         # mostra gráfico
         g1.mostrar()
 
-
-        # continuar programa
+        # continuar
         continuar = input(
             "\nDeseja criar outro gráfico? (s/n): "
         )
@@ -182,7 +278,6 @@ Digite:
             continuar = input(
                 "Resposta inválida. (s/n): "
             )
-
 
         if continuar == "n":
 

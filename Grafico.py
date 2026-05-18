@@ -86,7 +86,8 @@ class Grafico:
             self.xb[indice_maior],
             maior,
             color="green",
-            s=150,
+            s=200,
+            zorder=5,
             label=f"Maior: {maior}"
         )
 
@@ -114,7 +115,8 @@ class Grafico:
             self.xb[indice_menor],
             menor,
             color="red",
-            s=150,
+            s=200,
+            zorder=5,
             label=f"Menor: {menor}"
         )
 
@@ -177,18 +179,17 @@ class Grafico:
 
                 # valores nas barras
                 for i, valor in enumerate(self.yb):
-
                     plt.text(
-                        i,
-                        valor,
-                        str(valor)
+                        self.xb[i],
+                        valor + 0.2,
+                        str(valor),
+                        ha="center"
                     )
 
                 self.linha_media()
                 self.maxline()
                 self.minline()
                 self.desvio_padrao()
-
 
             # ---------------- PIZZA ----------------
             case "3":
